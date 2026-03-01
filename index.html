@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMT Zabbix Baseline Generator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #0a0c10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            max-width: 1000px;
+            width: 100%;
+            background: #1e1e2f;
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            padding: 32px;
+            color: #e1e9f0;
+            border: 1px solid #2d2d44;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.9rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .it-badge {
+            background: #2d2d44;
+            color: #a0aec0;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            border: 1px solid #3f3f60;
+        }
+        .sub {
+            color: #94a3b8;
+            margin-bottom: 25px;
+            font-size: 1rem;
+            border-left: 4px solid #3b82f6;
+            padding-left: 16px;
+            background: #25253a;
+            border-radius: 0 12px 12px 0;
+            line-height: 1.4;
+        }
+        label {
+            font-weight: 500;
+            color: #cbd5e1;
+            margin-top: 20px;
+            display: block;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #3f3f60;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: #0f0f1a;
+            color: #f1f5f9;
+            transition: 0.2s;
+            margin-top: 6px;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+            background: #1a1a2e;
+        }
+        .flex-row {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .flex-row > div {
+            flex: 1 1 200px;
+        }
+        button {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #a78bfa;
+            margin-right: 12px;
+            margin-top: 8px;
+            font-size: 0.95rem;
+        }
+        button:hover {
+            background: #7c3aed;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px -10px #8b5cf6;
+        }
+        button.secondary {
+            background: #2d2d44;
+            border: 1px solid #4b4b6e;
+            color: #e1e9f0;
+        }
+        button.secondary:hover {
+            background: #3f3f60;
+        }
+        .output {
+            background: #0f0f1a;
+            color: #c0caf5;
+            padding: 20px;
+            border-radius: 20px;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+            border: 1px solid #3f3f60;
+            margin: 12px 0 8px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .copy-btn {
+            background: #2d2d44;
+            border: 1px solid #5f5f8a;
+            color: #e1e9f0;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 15px;
+        }
+        .copy-btn:hover {
+            background: #3f3f60;
+        }
+        hr {
+            margin: 32px 0;
+            border: 1px solid #2d2d44;
+        }
+        .note {
+            background: #25253a;
+            border-left: 6px solid #f97316;
+            padding: 18px 20px;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            color: #f1d7b5;
+            margin-top: 30px;
+        }
+        .example-link {
+            color: #a78bfa;
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            margin-left: 12px;
+            font-size: 0.9rem;
+        }
+        .generator-btn {
+            background: #10b981;
+            border-color: #34d399;
+            margin-top: 20px;
+            padding: 14px 36px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .generator-btn:hover {
+            background: #059669;
+        }
+        .auto-note {
+            color: #a0aec0;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="header">
+        <h1>PMT Zabbix Baseline Generator</h1>
+        <span class="it-badge">IT Services</span>
+    </div>
+    <div class="sub">
+        Convert static threshold triggers to adaptive statistical monitoring (drops below baseline)
+    </div>
+
+    <label>📋 Paste old expression</label>
+    <textarea id="oldExpr" rows="2" placeholder="e.g. max(/Host Name/Item key[with,commas],30m)=0"></textarea>
+    <div class="auto-note">Paste your old expression above, then click <strong>Generate Automatically</strong> to fill fields and create new expressions. You can then adjust manually and click <strong>Generate New Expressions</strong> again.</div>
+    <div style="margin: 15px 0 5px;">
+        <button onclick="parseOldAndGenerate()">⚡ Generate Automatically</button>
+        <button class="secondary" onclick="fillExample()">📌 Load Example</button>
+        <span class="example-link" style="margin-left: 15px;">Parsing works for most formats</span>
+    </div>
+
+    <div class="flex-row">
+        <div style="flex:2;">
+            <label>🖥️ Host:</label>
+            <input type="text" id="host" placeholder="e.g. SBSA Mobile Portal TR FE1">
+        </div>
+        <div style="flex:3;">
+            <label>📦 Item key (full, including OIDs):</label>
+            <input type="text" id="item" placeholder="e.g. HTTP.request.rate[iso.3.6.1.4.1.20856.902.1.2.1.2,114]">
+        </div>
+        <div>
+            <label>⏱️ Duration:</label>
+            <input type="text" id="duration" value="15m" placeholder="15m">
+        </div>
+    </div>
+
+    <div style="margin-top: 25px;">
+        <label>🔢 Sensitivity multiplier (trigger):</label>
+        <input type="number" id="multiplier" min="1" max="5" step="0.1" value="2" style="width:90px; display: inline-block; margin-left: 10px;">
+        <span style="margin-left: 25px; color: #a0aec0;">Recovery uses ×1 (fixed)</span>
+    </div>
+
+    <button class="generator-btn" onclick="generateExpressions()">🚀 Generate New Expressions</button>
+
+    <hr>
+
+    <h2 style="margin-bottom: 5px; color: #d1d5db;">✅ New Trigger Expression</h2>
+    <div id="triggerOutput" class="output">—</div>
+    <button class="copy-btn" onclick="copyToClipboard('triggerOutput')">📋 Copy Trigger</button>
+
+    <h2 style="margin: 25px 0 5px; color: #d1d5db;">🔄 Recovery Expression</h2>
+    <div id="recoveryOutput" class="output">—</div>
+    <button class="copy-btn" onclick="copyToClipboard('recoveryOutput')">📋 Copy Recovery</button>
+
+    <div class="note">
+        <strong>⚠️ Note on parsing:</strong> If your item key contains commas (e.g. OIDs), the automatic parser might not extract it perfectly. After clicking <strong>Generate Automatically</strong>, review the Host, Item and Duration fields below and correct them manually if needed. Then click <strong>Generate New Expressions</strong> to update.
+    </div>
+</div>
+
+<script>
+    function fillExample() {
+        document.getElementById('host').value = 'SBSA Mobile Portal TR FE1';
+        document.getElementById('item').value = 'HTTP.request.rate[iso.3.6.1.4.1.20856.902.1.2.1.2,114]';
+        document.getElementById('duration').value = '15m';
+        document.getElementById('oldExpr').value = 'max(/SBSA Mobile Portal TR FE1/HTTP.request.rate[iso.3.6.1.4.1.20856.902.1.2.1.2,114],15m)=0';
+        generateExpressions();
+    }
+
+    function parseOldAndGenerate() {
+        const old = document.getElementById('oldExpr').value.trim();
+        if (!old) {
+            alert('Please paste an old expression first.');
+            return;
+        }
+
+        const regex = /^\s*\w+\s*\(\s*\/(.+?)\/(.+?)\s*[\),]\s*(\d+[mhd])?/;
+        const match = old.match(regex);
+        if (match) {
+            let host = match[1].trim();
+            let item = match[2].trim();
+            if (item.endsWith(',')) item = item.slice(0, -1);
+            document.getElementById('host').value = host;
+            document.getElementById('item').value = item;
+            if (match[3]) {
+                document.getElementById('duration').value = match[3];
+            }
+        } else {
+            alert('Could not parse host/item. Please fill manually.');
+        }
+        // Always generate after parsing attempt (even if parse failed, fields might be old)
+        generateExpressions();
+    }
+
+    function generateExpressions() {
+        const host = document.getElementById('host').value.trim();
+        let item = document.getElementById('item').value.trim();
+        const duration = document.getElementById('duration').value.trim();
+        const mult = parseFloat(document.getElementById('multiplier').value) || 2;
+
+        if (!host || !item || !duration) {
+            alert('Please fill Host, Item and Duration.');
+            return;
+        }
+
+        const path = `/${host}/${item}`;
+
+        const trigger = `max(${path},${duration})=0
+and
+baselinewma(${path},1h:now/h,"d",14)>0
+and
+avg(${path},${duration})
+<
+(
+  baselinewma(${path},1h:now/h,"d",14)
+  -
+  (baselinedev(${path},1h:now/h,"d",14) * ${mult})
+)
+and
+0<>1`;
+
+        const recovery = `avg(${path},${duration})
+>
+(
+  baselinewma(${path},1h:now/h,"d",14)
+  -
+  (baselinedev(${path},1h:now/h,"d",14) * 1)
+)`;
+
+        document.getElementById('triggerOutput').innerText = trigger;
+        document.getElementById('recoveryOutput').innerText = recovery;
+    }
+
+    function copyToClipboard(elementId) {
+        const text = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Copied to clipboard!');
+        }).catch(() => {
+            alert('Press Ctrl+C to copy');
+        });
+    }
+
+    window.onload = function() {
+        fillExample();  // pre-load example for convenience
+    };
+</script>
+</body>
+</html>
