@@ -1,341 +1,741 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PMT Zabbix Baseline Generator</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        body {
-            background: #0a0c10;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .card {
-            max-width: 1000px;
-            width: 100%;
-            background: #1e1e2f;
-            border-radius: 28px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-            padding: 32px;
-            color: #e1e9f0;
-            border: 1px solid #2d2d44;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 1.9rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #a78bfa, #60a5fa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .it-badge {
-            background: #2d2d44;
-            color: #a0aec0;
-            padding: 8px 18px;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-            border: 1px solid #3f3f60;
-        }
-        .sub {
-            color: #94a3b8;
-            margin-bottom: 25px;
-            font-size: 1rem;
-            border-left: 4px solid #3b82f6;
-            padding-left: 16px;
-            background: #25253a;
-            border-radius: 0 12px 12px 0;
-            line-height: 1.4;
-        }
-        label {
-            font-weight: 500;
-            color: #cbd5e1;
-            margin-top: 20px;
-            display: block;
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #3f3f60;
-            border-radius: 16px;
-            font-size: 0.95rem;
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            background: #0f0f1a;
-            color: #f1f5f9;
-            transition: 0.2s;
-            margin-top: 6px;
-        }
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #8b5cf6;
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
-            background: #1a1a2e;
-        }
-        .flex-row {
-            display: flex;
-            gap: 18px;
-            flex-wrap: wrap;
-            align-items: flex-end;
-        }
-        .flex-row > div {
-            flex: 1 1 200px;
-        }
-        button {
-            background: #8b5cf6;
-            color: white;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            border: 1px solid #a78bfa;
-            margin-right: 12px;
-            margin-top: 8px;
-            font-size: 0.95rem;
-        }
-        button:hover {
-            background: #7c3aed;
-            transform: translateY(-1px);
-            box-shadow: 0 10px 20px -10px #8b5cf6;
-        }
-        button.secondary {
-            background: #2d2d44;
-            border: 1px solid #4b4b6e;
-            color: #e1e9f0;
-        }
-        button.secondary:hover {
-            background: #3f3f60;
-        }
-        .output {
-            background: #0f0f1a;
-            color: #c0caf5;
-            padding: 20px;
-            border-radius: 20px;
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            white-space: pre-wrap;
-            word-break: break-word;
-            border: 1px solid #3f3f60;
-            margin: 12px 0 8px;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-        .copy-btn {
-            background: #2d2d44;
-            border: 1px solid #5f5f8a;
-            color: #e1e9f0;
-            padding: 8px 18px;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-bottom: 15px;
-        }
-        .copy-btn:hover {
-            background: #3f3f60;
-        }
-        hr {
-            margin: 32px 0;
-            border: 1px solid #2d2d44;
-        }
-        .note {
-            background: #25253a;
-            border-left: 6px solid #f97316;
-            padding: 18px 20px;
-            border-radius: 16px;
-            font-size: 0.95rem;
-            color: #f1d7b5;
-            margin-top: 30px;
-        }
-        .example-link {
-            color: #a78bfa;
-            cursor: pointer;
-            text-decoration: underline;
-            text-decoration-style: dotted;
-            margin-left: 12px;
-            font-size: 0.9rem;
-        }
-        .generator-btn {
-            background: #10b981;
-            border-color: #34d399;
-            margin-top: 20px;
-            padding: 14px 36px;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-        .generator-btn:hover {
-            background: #059669;
-        }
-        .auto-note {
-            color: #a0aec0;
-            font-size: 0.9rem;
-            margin-top: 5px;
-            font-style: italic;
-        }
-    </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PMT Zabbix Baseline Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:        #080a0f;
+    --card:      #0f1117;
+    --card2:     #14172080;
+    --border:    #1e2535;
+    --border2:   #252d42;
+    --purple:    #7c3aed;
+    --purple2:   #6d28d9;
+    --purple-glow: #7c3aed44;
+    --green:     #059669;
+    --green2:    #047857;
+    --green-glow: #05966944;
+    --orange:    #d97706;
+    --orange-bg: #d9770618;
+    --text:      #e2e8f0;
+    --text2:     #94a3b8;
+    --text3:     #64748b;
+    --mono:      'JetBrains Mono', monospace;
+    --sans:      'Syne', sans-serif;
+    --radius:    10px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ── Ambient background grid ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,58,237,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,58,237,.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,58,237,.12) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page-wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 20px 60px;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 36px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .header-left { display: flex; flex-direction: column; gap: 6px; }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--purple);
+    background: var(--purple-glow);
+    border: 1px solid var(--purple);
+    border-radius: 4px;
+    padding: 4px 10px;
+    width: fit-content;
+  }
+  .header-badge::before { content: '◈'; font-size: 9px; }
+
+  h1 {
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--text);
+    line-height: 1.1;
+  }
+  h1 span { color: var(--purple); }
+
+  .it-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text2);
+    background: var(--card);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 8px 16px;
+    white-space: nowrap;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: border-color .2s;
+  }
+  .card:focus-within { border-color: var(--border2); }
+
+  .card-title {
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px; height: 14px;
+    background: var(--purple);
+    border-radius: 2px;
+  }
+
+  /* ── Textarea ── */
+  textarea {
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--text);
+    background: #0a0c12;
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    resize: vertical;
+    min-height: 110px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  textarea:focus {
+    border-color: var(--purple);
+    box-shadow: 0 0 0 3px var(--purple-glow);
+  }
+  textarea::placeholder { color: var(--text3); }
+
+  /* ── Row of small inputs ── */
+  .fields-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    margin-top: 0;
+  }
+  @media (max-width: 640px) { .fields-row { grid-template-columns: 1fr; } }
+
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+
+  label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  input[type="text"], input[type="number"] {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text);
+    background: #0a0c12;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    width: 100%;
+  }
+  input:focus {
+    border-color: var(--purple);
+    box-shadow: 0 0 0 3px var(--purple-glow);
+  }
+
+  /* ── Conditions panel ── */
+  .conditions-panel {
+    background: #0a0c12;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 0;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.7;
+    color: var(--text2);
+    display: none;
+  }
+  .conditions-panel.visible { display: block; }
+
+  .cond-row { display: flex; align-items: center; gap: 8px; }
+  .cond-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; border-radius: 4px;
+    padding: 2px 8px;
+  }
+  .chip-yes  { background: #05966920; color: var(--green);  border: 1px solid #05966940; }
+  .chip-no   { background: #94a3b812; color: var(--text3);  border: 1px solid var(--border); }
+  .chip-warn { background: var(--orange-bg); color: var(--orange); border: 1px solid #d9770630; }
+
+  /* ── Sensitivity row ── */
+  .sens-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .sens-row label { color: var(--text2); font-size: 12px; letter-spacing: 0; text-transform: none; font-family: var(--sans); }
+  .sens-row input[type="number"] { width: 90px; }
+  .sens-note { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+
+  /* ── Buttons ── */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+
+  button {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: .04em;
+    border: none;
+    border-radius: 7px;
+    padding: 11px 22px;
+    cursor: pointer;
+    transition: transform .1s, box-shadow .2s, background .15s, opacity .2s;
+    white-space: nowrap;
+  }
+  button:active { transform: scale(.97); }
+
+  .btn-convert {
+    background: linear-gradient(135deg, var(--purple), #5b21b6);
+    color: #fff;
+    box-shadow: 0 4px 18px var(--purple-glow);
+  }
+  .btn-convert:hover { box-shadow: 0 6px 24px var(--purple-glow); background: linear-gradient(135deg,#8b5cf6, var(--purple2)); }
+
+  .btn-reset {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border2);
+  }
+  .btn-reset:hover { border-color: var(--text3); color: var(--text); }
+
+  .btn-copy {
+    background: transparent;
+    color: var(--green);
+    border: 1px solid #05966940;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 14px;
+    border-radius: 5px;
+  }
+  .btn-copy:hover { background: var(--green-glow); border-color: var(--green); }
+  .btn-copy.copied { color: #6ee7b7; border-color: #6ee7b740; }
+
+  /* ── Output boxes ── */
+  .output-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .output-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 4px;
+  }
+  .tag-trigger  { background: var(--purple-glow); color: var(--purple); border: 1px solid #7c3aed50; }
+  .tag-recovery { background: var(--green-glow);  color: var(--green);  border: 1px solid #05966950; }
+
+  .output-box {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    color: #c4b5fd;
+    background: #07080e;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    word-break: break-all;
+    white-space: pre-wrap;
+    min-height: 64px;
+    transition: border-color .2s;
+  }
+  .output-box.recovery { color: #6ee7b7; }
+  .output-box:empty::before { content: attr(data-placeholder); color: var(--text3); font-style: italic; }
+
+  /* ── Error / warning banner ── */
+  .alert {
+    display: none;
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 12px 16px;
+    border-radius: 7px;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+  .alert.visible { display: block; }
+  .alert-error { background: #7f1d1d18; border: 1px solid #dc262640; color: #fca5a5; }
+  .alert-warn  { background: var(--orange-bg); border: 1px solid #d9770640; color: #fbbf24; }
+
+  /* ── Footer notes ── */
+  .footer-notes {
+    margin-top: 36px;
+    padding: 22px 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--text2);
+  }
+  .footer-notes h3 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+  }
+  .footer-notes p { margin-bottom: 6px; }
+  .footer-notes code {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: #1e2535;
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #c4b5fd;
+  }
+  .warn-note {
+    display: inline-flex; align-items: flex-start; gap: 8px;
+    background: var(--orange-bg);
+    border: 1px solid #d9770630;
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: var(--orange);
+    font-size: 11.5px;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+  .warn-note span { flex: 1; }
+
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--text3);
+    letter-spacing: .06em;
+  }
+
+  /* ── Fade-in animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card { animation: fadeUp .35s ease both; }
+  .card:nth-child(1) { animation-delay: .05s; }
+  .card:nth-child(2) { animation-delay: .12s; }
+  .card:nth-child(3) { animation-delay: .18s; }
+  .card:nth-child(4) { animation-delay: .24s; }
+  header { animation: fadeUp .3s ease both; }
+
+  /* ── Divider ── */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* ── Status dot ── */
+  .status-dot {
+    display: inline-block; width: 7px; height: 7px;
+    border-radius: 50%; margin-right: 6px;
+    background: var(--text3);
+  }
+  .status-dot.active { background: var(--green); box-shadow: 0 0 6px var(--green); }
+</style>
 </head>
 <body>
-<div class="card">
-    <div class="header">
-        <h1>PMT Zabbix Baseline Generator</h1>
-        <span class="it-badge">IT Services</span>
+<div class="page-wrap">
+
+  <header>
+    <div class="header-left">
+      <div class="header-badge">Platform Monitoring Team</div>
+      <h1>Zabbix <span>Baseline</span> Generator</h1>
     </div>
-    <div class="sub">
-        Convert static threshold triggers to adaptive statistical monitoring (drops below baseline)
+    <div class="it-badge">IT Services</div>
+  </header>
+
+  <!-- Alert box -->
+  <div id="alertBox" class="alert"></div>
+
+  <!-- ① Input card -->
+  <div class="card">
+    <div class="card-title">Input — Existing Trigger Expression</div>
+    <textarea id="inputExpr" rows="5"
+      placeholder="Paste your existing Zabbix trigger expression here…
+e.g. max(/My Host/agent.ping,{$DURATION})=0 and last(/My Host/zabbix.proxy.lastaccess,0s)=1"></textarea>
+    <div class="btn-row">
+      <button class="btn-convert" onclick="doConvert()">⚡ Convert Expression</button>
+      <button class="btn-reset"   onclick="doReset()">↺ Reset</button>
+    </div>
+  </div>
+
+  <!-- ② Extracted fields card -->
+  <div class="card">
+    <div class="card-title">Extracted Fields <span id="statusDot" class="status-dot" style="margin-left:4px"></span></div>
+    <div class="fields-row">
+      <div class="field-group">
+        <label>Host</label>
+        <input type="text" id="fHost" placeholder="auto-detected" oninput="regenerate()"/>
+      </div>
+      <div class="field-group">
+        <label>Item Key</label>
+        <input type="text" id="fItem" placeholder="auto-detected" oninput="regenerate()"/>
+      </div>
+      <div class="field-group">
+        <label>Duration</label>
+        <input type="text" id="fDuration" placeholder="e.g. 5m" oninput="regenerate()"/>
+      </div>
     </div>
 
-    <label>📋 Paste old expression</label>
-    <textarea id="oldExpr" rows="2" placeholder="e.g. max(/Host Name/Item key[with,commas],30m)=0"></textarea>
-    <div class="auto-note">Paste your old expression above, then click <strong>Generate Automatically</strong> to fill fields and create new expressions. You can then adjust manually and click <strong>Generate New Expressions</strong> again.</div>
-    <div style="margin: 15px 0 5px;">
-        <button onclick="parseOldAndGenerate()">⚡ Generate Automatically</button>
-        <button class="secondary" onclick="fillExample()">📌 Load Example</button>
-        <span class="example-link" style="margin-left: 15px;">Parsing works for most formats</span>
+    <div class="divider"></div>
+
+    <div class="card-title" style="margin-bottom:10px;">Detected Conditions</div>
+    <div id="condPanel" class="conditions-panel">
+      <!-- populated by JS -->
     </div>
 
-    <div class="flex-row">
-        <div style="flex:2;">
-            <label>🖥️ Host:</label>
-            <input type="text" id="host" placeholder="e.g. SBSA Mobile Portal TR FE1">
-        </div>
-        <div style="flex:3;">
-            <label>📦 Item key (full, including OIDs):</label>
-            <input type="text" id="item" placeholder="e.g. HTTP.request.rate[iso.3.6.1.4.1.20856.902.1.2.1.2,114]">
-        </div>
-        <div>
-            <label>⏱️ Duration:</label>
-            <input type="text" id="duration" value="15m" placeholder="15m">
-        </div>
+    <div style="margin-top:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+      <label style="font-size:12px;color:var(--text2);letter-spacing:0;text-transform:none;font-family:var(--sans);">
+        Sensitivity multiplier:
+      </label>
+      <input type="number" id="multiplier" value="2.0" min="1.0" max="5.0" step="0.1"
+             style="width:80px;" oninput="regenerate()"/>
+      <span class="sens-note">range 1.0 – 5.0 · recovery fixed at 1</span>
     </div>
+  </div>
 
-    <div style="margin-top: 25px;">
-        <label>🔢 Sensitivity multiplier (trigger):</label>
-        <input type="number" id="multiplier" min="1" max="5" step="0.1" value="2" style="width:90px; display: inline-block; margin-left: 10px;">
-        <span style="margin-left: 25px; color: #a0aec0;">Recovery uses ×1 (fixed)</span>
+  <!-- ③ Output card -->
+  <div class="card">
+    <div class="card-title">Generated Expressions</div>
+
+    <div class="output-label">
+      <div class="output-tag tag-trigger">Trigger Expression</div>
+      <button class="btn-copy" id="btnCopyTrigger" onclick="copyText('outTrigger','btnCopyTrigger')">⎘ Copy</button>
     </div>
+    <div id="outTrigger" class="output-box" data-placeholder="Convert an expression to see output here…"></div>
 
-    <button class="generator-btn" onclick="generateExpressions()">🚀 Generate New Expressions</button>
+    <div style="height:20px;"></div>
 
-    <hr>
-
-    <h2 style="margin-bottom: 5px; color: #d1d5db;">✅ New Trigger Expression</h2>
-    <div id="triggerOutput" class="output">—</div>
-    <button class="copy-btn" onclick="copyToClipboard('triggerOutput')">📋 Copy Trigger</button>
-
-    <h2 style="margin: 25px 0 5px; color: #d1d5db;">🔄 Recovery Expression</h2>
-    <div id="recoveryOutput" class="output">—</div>
-    <button class="copy-btn" onclick="copyToClipboard('recoveryOutput')">📋 Copy Recovery</button>
-
-    <div class="note">
-        <strong>⚠️ Note on parsing:</strong> If your item key contains commas (e.g. OIDs), the automatic parser might not extract it perfectly. After clicking <strong>Generate Automatically</strong>, review the Host, Item and Duration fields below and correct them manually if needed. Then click <strong>Generate New Expressions</strong> to update.
+    <div class="output-label">
+      <div class="output-tag tag-recovery">Recovery Expression</div>
+      <button class="btn-copy" id="btnCopyRecovery" onclick="copyText('outRecovery','btnCopyRecovery')">⎘ Copy</button>
     </div>
+    <div id="outRecovery" class="output-box recovery" data-placeholder="Recovery expression will appear here…"></div>
+  </div>
+
+  <!-- Footer notes -->
+  <div class="footer-notes">
+    <h3>Usage Notes</h3>
+    <p>1. Paste a Zabbix trigger expression containing a <code>max(/host/item,duration)=0</code> condition and click <strong>Convert Expression</strong>.</p>
+    <p>2. The tool auto-extracts the host, item key, and duration. Edit the fields if needed — output updates live.</p>
+    <p>3. Adjust the <strong>sensitivity multiplier</strong> (default 2.0) to control how far below baseline triggers a problem. Recovery is always fixed at 1.</p>
+    <p>4. Both expressions use <code>baselinewma()</code> for the weighted moving average and <code>baselinedev()</code> for the standard deviation over 14 days of hourly buckets.</p>
+    <p>5. The trailing <code>and 0&lt;&gt;1</code> in the trigger is a Zabbix expression lock marker — do not remove it.</p>
+    <div class="warn-note">
+      ⚠ <span>Any <code>time()</code> conditions in the original expression are automatically removed — Zabbix baseline functions already incorporate time-of-day context via the hourly bucket parameter <code>"d"</code>.</span>
+    </div>
+  </div>
+
+  <footer>PMT Zabbix Baseline Generator · v1.0 · 2026-03-11 · Internal Use Only</footer>
 </div>
 
 <script>
-    function fillExample() {
-        document.getElementById('host').value = 'SBSA Mobile Portal TR FE1';
-        document.getElementById('item').value = 'HTTP.request.rate[iso.3.6.1.4.1.20856.902.1.2.1.2,114]';
-        document.getElementById('duration').value = '15m';
-        document.getElementById('oldExpr').value = 'max(/SBSA Mobile Portal TR FE1/HTTP.request.rate[iso.3.6.1.4.1.20856.902.1.2.1.2,114],15m)=0';
-        generateExpressions();
+// ─── State ───────────────────────────────────────────────────────────────────
+let state = {
+  host: '', item: '', duration: '',
+  hasLast: false, lastExpr: '',
+  hasFailover: false, failoverExpr: '',
+  removedTime: false,
+  parsed: false
+};
+
+// ─── Parse ────────────────────────────────────────────────────────────────────
+function parseExpression(raw) {
+  const result = {
+    host: null, item: null, duration: null,
+    hasLast: false, lastExpr: '',
+    hasFailover: false, failoverExpr: '',
+    removedTime: false,
+    error: null, warning: null
+  };
+
+  if (!raw.trim()) { result.error = 'Please paste a Zabbix trigger expression first.'; return result; }
+
+  // ── Extract max(/host/item,duration)=0 ──
+  // Handles item keys with nested brackets/commas
+  const maxRe = /max\(\s*\/([^/]+)\/([^,)]+(?:\([^)]*\))*[^,)]*)\s*,\s*([^)]+?)\s*\)\s*(?:=\s*0)?/i;
+  const maxMatch = raw.match(maxRe);
+
+  if (!maxMatch) {
+    result.error = 'Could not find a <code>max(/host/item, duration)</code> pattern in the expression.';
+    return result;
+  }
+
+  result.host     = maxMatch[1].trim();
+  result.item     = maxMatch[2].trim();
+  result.duration = maxMatch[3].trim();
+
+  // ── Detect last(...)=1 ──
+  const lastRe = /last\(\s*\/[^/]+\/[^,)]+(?:,[^)]+)?\s*,\s*0s?\s*\)\s*=\s*1/i;
+  const lastMatch = raw.match(lastRe);
+  if (lastMatch) {
+    result.hasLast  = true;
+    result.lastExpr = lastMatch[0];
+  }
+
+  // ── Detect {$IS_FAILOVER...}<>1 ──
+  const foRe = /\{\$IS_FAILOVER[^}]*\}\s*<>\s*1/i;
+  const foMatch = raw.match(foRe);
+  if (foMatch) {
+    result.hasFailover  = true;
+    result.failoverExpr = foMatch[0];
+  }
+
+  // ── Detect time() ──
+  if (/\btime\s*\(/.test(raw)) {
+    result.removedTime = true;
+  }
+
+  return result;
+}
+
+// ─── Build expressions ────────────────────────────────────────────────────────
+function buildExpressions(host, item, duration, multiplier, hasLast, lastExpr, hasFailover, failoverExpr) {
+  const base  = `baselinewma(/${host}/${item},1h:now/h,"d",14)`;
+  const dev   = `baselinedev(/${host}/${item},1h:now/h,"d",14)`;
+  const multi = parseFloat(multiplier) || 2.0;
+
+  let trigger = `max(/${host}/${item},${duration})=0`;
+  if (hasLast)     trigger += `\nand ${lastExpr}`;
+  if (hasFailover) trigger += `\nand ${failoverExpr}`;
+  trigger += `\nand ${base}>0`;
+  trigger += `\nand avg(/${host}/${item},${duration}) < (${base} - (${dev} * ${multi}))`;
+  trigger += `\nand 0<>1`;
+
+  const recovery =
+    `avg(/${host}/${item},${duration}) > (${base} - (${dev} * 1))`;
+
+  return { trigger, recovery };
+}
+
+// ─── Render conditions panel ──────────────────────────────────────────────────
+function renderConditions() {
+  const panel = document.getElementById('condPanel');
+  panel.innerHTML = '';
+  panel.classList.add('visible');
+
+  const rows = [
+    {
+      label: 'last(…)=1 (enabled check)',
+      yes: state.hasLast,
+      detail: state.hasLast ? state.lastExpr : '—'
+    },
+    {
+      label: '{$IS_FAILOVER…}<>1 check',
+      yes: state.hasFailover,
+      detail: state.hasFailover ? state.failoverExpr : '—'
+    },
+    {
+      label: 'time() condition',
+      yes: state.removedTime,
+      chip: state.removedTime ? 'warn' : 'no',
+      detail: state.removedTime ? 'Detected and removed' : 'None found'
     }
+  ];
 
-    function parseOldAndGenerate() {
-        const old = document.getElementById('oldExpr').value.trim();
-        if (!old) {
-            alert('Please paste an old expression first.');
-            return;
-        }
+  rows.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'cond-row';
+    div.style.marginBottom = '6px';
 
-        const regex = /^\s*\w+\s*\(\s*\/(.+?)\/(.+?)\s*[\),]\s*(\d+[mhd])?/;
-        const match = old.match(regex);
-        if (match) {
-            let host = match[1].trim();
-            let item = match[2].trim();
-            if (item.endsWith(',')) item = item.slice(0, -1);
-            document.getElementById('host').value = host;
-            document.getElementById('item').value = item;
-            if (match[3]) {
-                document.getElementById('duration').value = match[3];
-            }
-        } else {
-            alert('Could not parse host/item. Please fill manually.');
-        }
-        // Always generate after parsing attempt (even if parse failed, fields might be old)
-        generateExpressions();
-    }
+    const chipClass = r.chip === 'warn' ? 'chip-warn' : (r.yes ? 'chip-yes' : 'chip-no');
+    const chipText  = r.chip === 'warn' ? 'REMOVED' : (r.yes ? 'FOUND' : 'ABSENT');
 
-    function generateExpressions() {
-        const host = document.getElementById('host').value.trim();
-        let item = document.getElementById('item').value.trim();
-        const duration = document.getElementById('duration').value.trim();
-        const mult = parseFloat(document.getElementById('multiplier').value) || 2;
+    div.innerHTML = `<span class="cond-chip ${chipClass}">${chipText}</span> <span>${r.label}</span>`
+      + (r.detail && r.detail !== '—' ? ` <span style="color:var(--text3);margin-left:4px;font-size:11px;">[${r.detail}]</span>` : '');
+    panel.appendChild(div);
+  });
+}
 
-        if (!host || !item || !duration) {
-            alert('Please fill Host, Item and Duration.');
-            return;
-        }
+// ─── Alert helpers ────────────────────────────────────────────────────────────
+function showAlert(msg, type='error') {
+  const el = document.getElementById('alertBox');
+  el.className = `alert visible alert-${type}`;
+  el.innerHTML = (type === 'error' ? '✖ ' : '⚠ ') + msg;
+}
+function clearAlert() {
+  const el = document.getElementById('alertBox');
+  el.className = 'alert';
+  el.textContent = '';
+}
 
-        const path = `/${host}/${item}`;
+// ─── Regenerate outputs (called on field edits too) ───────────────────────────
+function regenerate() {
+  const host     = document.getElementById('fHost').value.trim();
+  const item     = document.getElementById('fItem').value.trim();
+  const duration = document.getElementById('fDuration').value.trim();
+  const multi    = document.getElementById('multiplier').value;
 
-        const trigger = `max(${path},${duration})=0
-and
-baselinewma(${path},1h:now/h,"d",14)>0
-and
-avg(${path},${duration})
-<
-(
-  baselinewma(${path},1h:now/h,"d",14)
-  -
-  (baselinedev(${path},1h:now/h,"d",14) * ${mult})
-)
-and
-0<>1`;
+  if (!host || !item || !duration) {
+    document.getElementById('outTrigger').textContent  = '';
+    document.getElementById('outRecovery').textContent = '';
+    return;
+  }
 
-        const recovery = `avg(${path},${duration})
->
-(
-  baselinewma(${path},1h:now/h,"d",14)
-  -
-  (baselinedev(${path},1h:now/h,"d",14) * 1)
-)`;
+  const { trigger, recovery } = buildExpressions(
+    host, item, duration, multi,
+    state.hasLast, state.lastExpr,
+    state.hasFailover, state.failoverExpr
+  );
 
-        document.getElementById('triggerOutput').innerText = trigger;
-        document.getElementById('recoveryOutput').innerText = recovery;
-    }
+  document.getElementById('outTrigger').textContent  = trigger;
+  document.getElementById('outRecovery').textContent = recovery;
+}
 
-    function copyToClipboard(elementId) {
-        const text = document.getElementById(elementId).innerText;
-        navigator.clipboard.writeText(text).then(() => {
-            alert('Copied to clipboard!');
-        }).catch(() => {
-            alert('Press Ctrl+C to copy');
-        });
-    }
+// ─── Convert button ───────────────────────────────────────────────────────────
+function doConvert() {
+  clearAlert();
+  const raw = document.getElementById('inputExpr').value;
+  const res = parseExpression(raw);
 
-    window.onload = function() {
-        fillExample();  // pre-load example for convenience
-    };
+  if (res.error) {
+    showAlert(res.error, 'error');
+    document.getElementById('statusDot').className = 'status-dot';
+    return;
+  }
+  if (res.warning) showAlert(res.warning, 'warn');
+
+  // Apply to state
+  state.host         = res.host;
+  state.item         = res.item;
+  state.duration     = res.duration;
+  state.hasLast      = res.hasLast;
+  state.lastExpr     = res.lastExpr;
+  state.hasFailover  = res.hasFailover;
+  state.failoverExpr = res.failoverExpr;
+  state.removedTime  = res.removedTime;
+  state.parsed       = true;
+
+  // Populate fields
+  document.getElementById('fHost').value     = res.host;
+  document.getElementById('fItem').value     = res.item;
+  document.getElementById('fDuration').value = res.duration;
+
+  document.getElementById('statusDot').className = 'status-dot active';
+
+  renderConditions();
+  regenerate();
+
+  if (res.removedTime) showAlert('One or more <code>time()</code> conditions were detected and removed from the output.', 'warn');
+}
+
+// ─── Reset ────────────────────────────────────────────────────────────────────
+function doReset() {
+  state = { host:'', item:'', duration:'', hasLast:false, lastExpr:'', hasFailover:false, failoverExpr:'', removedTime:false, parsed:false };
+  ['inputExpr','fHost','fItem','fDuration'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('multiplier').value = '2.0';
+  document.getElementById('outTrigger').textContent  = '';
+  document.getElementById('outRecovery').textContent = '';
+  document.getElementById('condPanel').classList.remove('visible');
+  document.getElementById('condPanel').innerHTML = '';
+  document.getElementById('statusDot').className = 'status-dot';
+  clearAlert();
+}
+
+// ─── Copy ─────────────────────────────────────────────────────────────────────
+function copyText(boxId, btnId) {
+  const text = document.getElementById(boxId).textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(btnId);
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+  });
+}
 </script>
 </body>
 </html>
