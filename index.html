@@ -544,26 +544,95 @@ function parseExpression(raw) {
   if (!raw.trim()) { result.error = 'Please paste a Zabbix trigger expression first.'; return result; }
 
   // ── Extract max(/host/item,duration)=0 ──
-  // Handles item keys with nested brackets/commas
-  const maxRe = /max\(\s*\/([^/]+)\/([^,)]+(?:\([^)]*\))*[^,)]*)\s*,\s*([^)]+?)\s*\)\s*(?:=\s*0)?/i;
-  const maxMatch = raw.match(maxRe);
-
-  if (!maxMatch) {
+  // Uses a bracket-depth-aware manual parser so item keys like
+  // Network.invokes[iso.3.6.1.4.1.20856.600.1.4.1.2,3] are captured whole.
+  const maxStart = raw.search(/\bmax\s*\(\s*\//i);
+  if (maxStart === -1) {
     result.error = 'Could not find a <code>max(/host/item, duration)</code> pattern in the expression.';
     return result;
   }
 
-  result.host     = maxMatch[1].trim();
-  result.item     = maxMatch[2].trim();
-  result.duration = maxMatch[3].trim();
-
-  // ── Detect last(...)=1 ──
-  const lastRe = /last\(\s*\/[^/]+\/[^,)]+(?:,[^)]+)?\s*,\s*0s?\s*\)\s*=\s*1/i;
-  const lastMatch = raw.match(lastRe);
-  if (lastMatch) {
-    result.hasLast  = true;
-    result.lastExpr = lastMatch[0];
+  // Find the opening paren of max(
+  let pos = raw.indexOf('(', maxStart);
+  pos++; // skip '('
+  while (pos < raw.length && (raw[pos] === ' ' || raw[pos] === '\t')) pos++;
+  if (raw[pos] !== '/') {
+    result.error = 'Could not find a <code>max(/host/item, duration)</code> pattern in the expression.';
+    return result;
   }
+  pos++; // skip leading '/'
+
+  // Read host: up to next '/'
+  let hostStart = pos;
+  while (pos < raw.length && raw[pos] !== '/') pos++;
+  const host = raw.slice(hostStart, pos).trim();
+  pos++; // skip '/'
+
+  // Read item key: bracket-depth-aware, stop at a top-level comma
+  let itemStart = pos;
+  let depth = 0;
+  while (pos < raw.length) {
+    const ch = raw[pos];
+    if (ch === '[' || ch === '(') { depth++; pos++; continue; }
+    if (ch === ']' || ch === ')') {
+      if (depth === 0) break; // closing the max() paren itself
+      depth--; pos++; continue;
+    }
+    if (ch === ',' && depth === 0) break; // top-level comma = separator before duration
+    pos++;
+  }
+  const item = raw.slice(itemStart, pos).trim();
+  if (raw[pos] !== ',') {
+    result.error = 'Could not parse item key / duration separator in the expression.';
+    return result;
+  }
+  pos++; // skip ','
+
+  // Read duration: up to the closing ')' of max() (depth-aware for macros)
+  let durStart = pos;
+  depth = 0;
+  while (pos < raw.length) {
+    const ch = raw[pos];
+    if (ch === '(' || ch === '[' || ch === '{') { depth++; pos++; continue; }
+    if (ch === '}' || ch === ']') { depth--; pos++; continue; }
+    if (ch === ')' && depth === 0) break;
+    if (ch === ')') { depth--; pos++; continue; }
+    pos++;
+  }
+  const duration = raw.slice(durStart, pos).trim();
+
+  if (!host || !item || !duration) {
+    result.error = 'Could not fully parse host, item, or duration from the expression.';
+    return result;
+  }
+
+  result.host     = host;
+  result.item     = item;
+  result.duration = duration;
+
+  // ── Detect last(...)=1 (bracket-depth-aware) ──
+  (function detectLast() {
+    const re = /\blast\s*\(/ig;
+    let m;
+    while ((m = re.exec(raw)) !== null) {
+      let p = m.index + m[0].length;
+      let d = 1;
+      const start = m.index;
+      while (p < raw.length && d > 0) {
+        if (raw[p] === '(') d++;
+        else if (raw[p] === ')') d--;
+        p++;
+      }
+      const funcStr = raw.slice(start, p);
+      let q = p;
+      while (q < raw.length && (raw[q] === ' ' || raw[q] === '\t')) q++;
+      if (raw[q] === '=' && raw[q+1] === '1') {
+        result.hasLast  = true;
+        result.lastExpr = funcStr + '=1';
+        return;
+      }
+    }
+  })();
 
   // ── Detect {$IS_FAILOVER...}<>1 ──
   const foRe = /\{\$IS_FAILOVER[^}]*\}\s*<>\s*1/i;
